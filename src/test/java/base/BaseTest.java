@@ -30,8 +30,15 @@ public class BaseTest {
     @BeforeClass(alwaysRun = true)
     public void setupDriver(@Optional("chrome") String driverType) {
         readProperties();
-        elementHelper = new ElementHelper();
-        elementHelper.setUp(driverType);
+
+        // HATA DÜZELTME: Driver'ı statik olarak başlat (ElementHelper'ın statik metodu olmalı)
+        // Eğer ElementHelper'da böyle bir metot yoksa, adını 'setUp' olarak düzeltin.
+        // ElementHelper'ın içinde driver'ı statik olarak ayarlayan metodu çağırıyoruz.
+        ElementHelper.setUpStaticDriver(driverType);
+
+        // ElementHelper nesnesini oluşturulan driver ile başlatın
+        // (ElementHelper'ın kurucusu WebDriver gerektiriyor)
+        elementHelper = new ElementHelper(ElementHelper.getDriver());
     }
 
     static {
@@ -75,6 +82,7 @@ public class BaseTest {
     public void tearDown() {
         if (getDriver() != null) {
             logger.info("Driver will be closed");
+            // Statik driver'ı ElementHelper içindeki metotla kapat
             elementHelper.tearDown();
         }
     }
@@ -84,8 +92,10 @@ public class BaseTest {
         Config = ReadProperties.readProp("Config.properties");
     }
 
+    /**
+     * ElementHelper sınıfındaki statik driver nesnesini döndürür.
+     */
     public static WebDriver getDriver() {
         return ElementHelper.getDriver();
     }
-
 }
