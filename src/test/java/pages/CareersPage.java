@@ -13,6 +13,7 @@ import static base.BaseTest.Config;
 import java.sql.Driver;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -160,7 +161,7 @@ public class CareersPage {
             if (isJobTextVisible) {
                 System.out.println("INFO: Filtreleme sonrası beklenen tek iş ilanı metni ekranda görünüyor.");
             } else {
-                System.err.println("HATA: Tek iş ilanı metni (JOB_LIST_QUALITY_ASSURANCE_TEXT) bekleme süresinde görünür olmadı.");
+                System.err.println("HATA: Tek iş ilanı metni bekleme süresinde görünür olmadı.");
             }
 
             return isJobTextVisible;
@@ -186,9 +187,10 @@ public class CareersPage {
         elementHelper.waitForElementTextToEqual(CAREERS_PAGE_OPEN_POSITIONS_DEPARTMENT_TEXT_IN_CARD,department,7);
 
 
+
         try {
             // 4.1. İş Listesinin Yüklenmesini bekle (En az bir kartın görünürlüğünü beklemek)
-            elementHelper.waitForTheElement(CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR);
+    //        elementHelper.waitForTheElement(CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR);
 
             // 4.2. Tüm iş ilanı kartlarını al
             List<WebElement> jobCards = elementHelper.findElements(CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR);
@@ -199,7 +201,7 @@ public class CareersPage {
                 return false;
             }
 
-            elementHelper.waitByMilliSeconds(7000);
+
             System.out.println("INFO: Filtreleme sonrası toplam " + jobCards.size() + " adet iş ilanı bulundu. Doğrulama başlıyor.");
             String departmentText = elementHelper.getText(CAREERS_PAGE_OPEN_POSITIONS_DEPARTMENT_TEXT_IN_CARD);
             String locationText = elementHelper.getText(CAREERS_PAGE_OPEN_POSITIONS_LOCATION_TEXT_IN_CARD);
@@ -221,6 +223,8 @@ public class CareersPage {
     }
 
 
+
+
     private final By CAREERS_PAGE_OPEN_POSITIONS_VIEW_ROLE_BUTTON_IN_CARD = By.xpath("//a[@class='btn btn-navy rounded pt-2 pr-5 pb-2 pl-5']");
 
     public boolean clickAndVerifyLeverApplicationPage() {
@@ -230,7 +234,7 @@ public class CareersPage {
 
         // 2. İlk İş İlanı Kartını Bulma
         // İlk iş ilanı kartını bulmak için ana locator'ınızı (JOB_CARD_LOCATOR) kullanın.
-        By FIRST_JOB_CARD_LOCATOR = By.xpath("(//div[contains(@id, 'jobs-list')]/div[contains(@class, 'job-card')])[1]");
+        By FIRST_JOB_CARD_LOCATOR = By.xpath("//div[@class='position-list-item col-12 col-lg-4 qualityassurance istanbul-turkiye uncategorized']");
 
         WebElement firstJobCard;
         try {
@@ -244,22 +248,44 @@ public class CareersPage {
         try {
             WebElement viewRoleButton = elementHelper.findElement(firstJobCard, CAREERS_PAGE_OPEN_POSITIONS_VIEW_ROLE_BUTTON_IN_CARD);
 
-            // Tıklamadan önce sekmeleri al (Güvenlik için)
-            java.util.Set<String> beforeClickHandles = BaseTest.getDriver().getWindowHandles();
+            // Tıklamadan önce sekmeleri al (Set<String> import'u olmalı)
+            Set<String> beforeClickHandles = BaseTest.getDriver().getWindowHandles(); // BaseTest.getDriver() yerine driver kullanıldı
+            // Eğer driver'ınız BaseTest'ten geliyorsa: BaseTest.getDriver().getWindowHandles() kullanın.
 
-            // Butona tıkla (Yeni sekme açılacak)
-            // viewRoleButton üzerine fareyi getirip tıklamak için hoverAndClick metodu kullanıldı.
+            // Butona tıkla
             elementHelper.hoverAndClick(viewRoleButton, viewRoleButton);
             System.out.println("INFO: 'View Role' butonuna hover yapıldı ve tıklandı.");
 
-            // Yeni sekmenin açılmasını bekleme (hoverAndClick metodu sayfa yüklenmesini zaten bekleyebilir,
-            // ancak güvenlik için bu satırı tutuyoruz.)
-            elementHelper.waitForTheElement(By.xpath(Config.getString("HTML_TEXT")));
+            // Yeni sekmenin açılmasını bekleme (ElementHelper'daki metot bunu zaten yapıyor olabilir, ancak window handling için bekleme eklenmeli)
+            // elementHelper.waitForTheElement(By.xpath(Config.getString("HTML_TEXT"))); // İhtiyaç duyulursa kalsın
+
+            // 4. Yeni Sekmeye Geçiş (Window Handling)
+
+            // Yeni sekmenin açılması için bekler (en güvenilir yol)
+            WebDriverWait wait = new WebDriverWait(BaseTest.getDriver(), java.time.Duration.ofSeconds(10)); // 10 saniye bekleme süresi
+            wait.until(ExpectedConditions.numberOfWindowsToBe(beforeClickHandles.size() + 1));
+
+            Set<String> afterClickHandles = BaseTest.getDriver().getWindowHandles();
+
+            // Yeni sekmeyi bul
+            String newWindowHandle = afterClickHandles.stream()
+                    .filter(handle -> !beforeClickHandles.contains(handle))
+                    .findFirst()
+                    .orElse(null);
+
+            if (newWindowHandle == null) {
+                System.err.println("HATA: Tıkladıktan sonra yeni sekme açılmadı veya bulunamadı.");
+                return false;
+            }
+
+            // Yeni sekme/pencereye geçiş yap
+            BaseTest.getDriver().switchTo().window(newWindowHandle);
+            System.out.println("INFO: Yeni açılan Lever sekmesine geçildi.");
+
         } catch (Exception e) {
-            System.err.println("HATA: 'View Role' tıklaması veya pencere geçişi sırasında hata oluştu. " + e.getMessage());
+            System.err.println("HATA: Pencere geçişi (Window Handling) sırasında hata oluştu. " + e.getMessage());
             return false;
         }
-
         // 5. URL Kontrolü
         try {
             // Sayfanın yüklenmesini beklemek için bir bekleme ekleyebilirsiniz.
