@@ -1,6 +1,7 @@
 package pages;
 
 import base.BaseTest;
+import locators.HomeLocators;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -15,6 +16,7 @@ public class HomePage {
     private ElementHelper elementHelper;
     private WebDriverWait wait;
     private final By SELECT2_SEARCH_INPUT = By.xpath("//input[@class='select2-search__field']");
+    HomeLocators homeLocators = new HomeLocators();
 
     // Element Helper'ı BaseTest'ten gelen driver ile başlatmak için constructor
     public HomePage(ElementHelper elementHelper) {
@@ -24,18 +26,13 @@ public class HomePage {
     }
 
     // =========================================================================
-    //                            1. MADDE LOCATOR/METHOD
+    //                            1. MADDE
     // =========================================================================
-
-    // ---------LOCATOR-----
-    private final By COOKIES_ACCEPT_ALL_LOCATOR = By.xpath("//a[@data-cli_action='accept_all']");
-
-    // ---------METHOD-----
     public boolean isHomePageOpened() {
         try {
             // Cookie pop-up'ını bekleyip tıkla
-            wait.until(ExpectedConditions.elementToBeClickable(COOKIES_ACCEPT_ALL_LOCATOR));
-            elementHelper.clickElement(COOKIES_ACCEPT_ALL_LOCATOR);
+            wait.until(ExpectedConditions.elementToBeClickable(homeLocators.COOKIES_ACCEPT_ALL_LOCATOR));
+            elementHelper.clickElement(homeLocators.COOKIES_ACCEPT_ALL_LOCATOR);
         } catch (Exception e) {
             System.out.println("INFO: Cookie pop-up'ı görünmedi veya zaten kapatılmış.");
         }
@@ -43,22 +40,13 @@ public class HomePage {
     }
 
     // =========================================================================
-    //                            2. MADDE LOCATOR/METHOD
+    //                            2. MADDE
     // =========================================================================
 
-    // ---------LOCATOR-----
-    private final By HOME_PAGE_COMPANY_MENU_LOCATOR = By.xpath("//a[text()='Company' or contains(.,'Company')]");
-    private final By HOME_PAGE_COMPANY_MENU_CAREERS_LINK_LOCATOR = By.xpath("//a[text()='Careers' and @href='https://useinsider.com/careers/']");
-
-    // ---------METHOD-----
     public boolean selectCompanySelectCarersAndCheckCareerPage() {
-        WebElement companyDropDownMenu = elementHelper.findElement(HOME_PAGE_COMPANY_MENU_LOCATOR);
-        WebElement companyDropDownMenu_Careers = elementHelper.findElement(HOME_PAGE_COMPANY_MENU_CAREERS_LINK_LOCATOR);
-
-        // Bu metot Actions sınıfını kullanarak hover yapmalı.
-        // ElementHelper'ınızdaki 'hoverAndClick' metodunun bu işi doğru yaptığını varsayıyorum.
+        WebElement companyDropDownMenu = elementHelper.findElement(homeLocators.HOME_PAGE_COMPANY_MENU_LOCATOR);
+        WebElement companyDropDownMenu_Careers = elementHelper.findElement(homeLocators.HOME_PAGE_COMPANY_MENU_CAREERS_LINK_LOCATOR);
         elementHelper.hoverAndClick(companyDropDownMenu, companyDropDownMenu_Careers);
-
         String expectedUrlPart = Config.getString("CAREERS_URL");
         return elementHelper.shouldSee(expectedUrlPart);
     }
