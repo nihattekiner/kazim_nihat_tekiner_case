@@ -8,7 +8,9 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
+import java.util.List;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Set;
@@ -414,7 +416,43 @@ public class ElementHelper {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].click();", element);
     }
+    /**
+     * Belirtilen locator'a uyan TÜM elementleri bulur ve bir liste olarak döndürür.
+     * Elementler bulunamazsa boş bir liste döndürür.
+     * * @param by Elementlerin bulunması için kullanılan By (Locator).
+     * @return Bulunan WebElement'lerin listesi.
+     */
+    public List<WebElement> findElements(By by) {
+        // 'driver' nesnesinin ElementHelper sınıfınızda tanımlı ve erişilebilir olduğunu varsayıyoruz.
+        return driver.findElements(by);
+    }
+    public WebElement findElement(WebElement parentElement, By childBy) {
+        // Selenium'da bir WebElement üzerinden findElement çağırmak,
+        // aramayı sadece o elementin kapsamıyla sınırlandırır.
+        return parentElement.findElement(childBy);
+    }
+    /**
+     * Elementin metninin, beklenen metne eşit olana kadar bekler.
+     * @param by Elementin Locator'ı.
+     * @param expectedText Beklenen metin değeri.
+     * @param timeoutSeconds Bekleme süresi (saniye).
+     */
+    public boolean waitForElementTextToEqual(By by, String expectedText, int timeoutSeconds) {
+        try {
+            // WebDriverWait nesnenizi oluşturun. (driver'ın ElementHelper'da erişilebilir olduğunu varsayarak)
+            WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(timeoutSeconds));
 
+            // Metnin tam olarak eşleşmesini bekler (trim() yaparak boşlukları temizler).
+            // NOT: Eğer elementin metni expectedText'i içeriyorsa, 'textToBePresentInElementLocated' kullanın.
+            // Eşitlik istediğiniz için burada 'textToBePresentInElement' ile daha güvenli bir custom condition kullanılmalıdır.
 
+            wait.until(ExpectedConditions.textToBePresentInElementLocated(by, expectedText));
 
+            // Eğer bekleme süresince exception atılmazsa, element metni eşleşmiştir.
+            return true;
+        } catch (Exception e) {
+            System.err.println("HATA: Metin (" + expectedText + ") beklenen sürede elementte bulunamadı. Hata: " + e.getMessage());
+            return false;
+        }
+    }
 }

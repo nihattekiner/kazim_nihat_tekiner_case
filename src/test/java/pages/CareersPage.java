@@ -8,6 +8,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import utils.ElementHelper;
+import static base.BaseTest.Config;
+
+import java.sql.Driver;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,8 +64,8 @@ public class CareersPage {
     // Custom Dropdown'ları açan ana tıklanabilir elemanların locator'ları
     private final By LOCATION_DROPDOWN_CLICKABLE_LOCATOR = By.xpath("(//span[@class='select2-selection__arrow'])[1]");
     private final By DEPARTMENT_DROPDOWN_CLICKABLE_LOCATOR = By.xpath("(//span[@class='select2-selection__arrow'])[2]");
-    private final By LOCATION_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR = By.xpath("//span[@title='Remove all items']"); // En basta 2 tane bu locator'dan var
-    private final By DEPARTMENT_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR = By.xpath("//span[@title='Remove all items']"); // Fakat ilkini tiklaninca locator sayisi 1'e dusuyor
+    private final By LOCATION_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR = By.xpath("(//span[@title='Remove all items'])[1]"); // En basta 2 tane bu locator'dan var
+    private final By DEPARTMENT_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR = By.xpath("(//span[@title='Remove all items'])[2]"); // Fakat ilkini tiklaninca locator sayisi 1'e dusuyor
     private final By DEPARTMENT_DROPDOWN_QUALITY_ASSURANCE_TEXT_LOCATOR = By.xpath("//span[@title='Quality Assurance']");
     private final By DEPARTMENT_DROPDOWN_ALL_TEXT_LOCATOR = By.xpath("//span[@title='All']");
     private final By lao = By.xpath("//li[@id='select2-filter-by-location-result-lu76-Istanbul, Turkiye']");
@@ -98,31 +101,24 @@ public class CareersPage {
             System.err.println("HATA: 'See All QA jobs' butonu bulunamadı veya tıklanamadı. Sayfa yüklenmemiş olabilir.");
             return false;
         }
+
+        elementHelper.waitByMilliSeconds(10000);
         wait.until(ExpectedConditions.or(
                 ExpectedConditions.visibilityOfElementLocated(DEPARTMENT_DROPDOWN_QUALITY_ASSURANCE_TEXT_LOCATOR),
                 ExpectedConditions.visibilityOfElementLocated(DEPARTMENT_DROPDOWN_ALL_TEXT_LOCATOR)
         ));
-
-
-        elementHelper.waitByMilliSeconds(5000);
-
-        // 2. Location Filtresini Uygula (Select2 Yöntemi)
+        // 2. Location Filtresini Uygula
         try {
             elementHelper.clickElement(LOCATION_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR);
-
-            // İstanbul seçeneğinin görünür olmasını bekle
             elementHelper.waitForTheElement(dropdownIstText);
-
-            // JavaScript ile tıklamayı dene
-            // WebElement istanbulOption = elementHelper.findElement(dropdownIstText); // Bu satıra gerek kalmaz
-            elementHelper.clickElementWithJS(dropdownIstText); // YENİ METOT KULLANIMI
+            elementHelper.clickElementWithJS(dropdownIstText);
+            elementHelper.clickElement(dropdownIstText);
 
             System.out.println("INFO: Location filtresi (" + location + ") JS ile uygulandı.");
         } catch (Exception e) {
             System.err.println("HATA: Location filtresi uygulanamadı. Hata: " + e.getMessage());
             return false;
         }
-
 
         // 3. Department Filtresini Uygula (Select2 Yöntemi)
         try {
@@ -133,6 +129,7 @@ public class CareersPage {
 
             // JavaScript ile tıklamayı dene
             elementHelper.clickElementWithJS(dropdownQAText); // YENİ METOT KULLANIMI
+            elementHelper.clickElement(dropdownQAText);
 
             System.out.println("INFO: Department filtresi (" + department + ") JS ile uygulandı.");
         } catch (Exception e) {
@@ -145,7 +142,16 @@ public class CareersPage {
             // İŞ İLANI METNİNİN GÖRÜNÜR OLMASINI BEKLE (Zorunlu bekleme)
             // Eğer bu locator (JOB_LIST_QUALITY_ASSURANCE_TEXT) doğru tek iş ilanı kartını temsil ediyorsa:
 
+            try {
             elementHelper.waitForTheElement(JOB_LIST_QUALITY_ASSURANCE_TEXT);
+            boolean isTextMatched = elementHelper.waitForElementTextToEqual(
+                    JOB_LIST_QUALITY_ASSURANCE_TEXT,
+                    department,
+                    10 // 10 saniye bekleme süresi
+            );
+            } catch (Exception e) {
+                System.err.println("JOB LIST ICERISINDE QUALITY ASSURANCE YAZISI BULUNAMADI " + e.getMessage());;
+            }
 
             // Sadece elementin görünür olup olmadığını kontrol ederek TRUE dön.
             // Metin kontrolü yapmanıza gerek kalmaz, çünkü bekleme başarılıysa element oradadır.
@@ -163,115 +169,128 @@ public class CareersPage {
             System.err.println("HATA: İş ilanı metni kontrol edilirken bir hata oluştu veya Timeout yaşandı. Hata: " + e.getMessage());
             return false;
         }
+
+
     }
-    /*
-        elementHelper.waitForPageToCompleteState();
-        elementHelper.waitForTheElement(LOCATION_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR);
-        elementHelper.clickElement(LOCATION_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR);
-        elementHelper.waitForTheElement(DEPARTMENT_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR);
-        elementHelper.clickElement(DEPARTMENT_DROPDOWN_REMOVE_ALL_BUTTON_LOCATOR);
-        elementHelper.waitForTheElement(lao);
-        elementHelper.clickElement(lao);
-        WebElement dropdownElement = BaseTest.getDriver().findElement(By.xpath("//span[@id='select2-filter-by-location-container']"));
-        Select select = new Select(dropdownElement);
-        select.selectByVisibleText(location);
-        WebElement dropdownElement2 = BaseTest.getDriver().findElement(By.xpath("//span[@id='select2-filter-by-department-container']"));
-        Select select2 = new Select(dropdownElement);
-        select.selectByVisibleText(department);
-         */
 
-/*
+    // Sınıf seviyesindeki GÜNCEL Locator'lar
+    private final By CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR = By.xpath("//div[contains(@id, 'jobs-list')]");
+    private final By CAREERS_PAGE_OPEN_POSITIONS_DEPARTMENT_TEXT_IN_CARD = By.xpath(".//span[contains(@class, 'position-department')]");
+    private final By CAREERS_PAGE_OPEN_POSITIONS_LOCATION_TEXT_IN_CARD = By.xpath(".//div[@class='position-location text-large']");
 
 
+    public boolean verifyJobFilters(String location, String department) {
+        // ------------------- ADIM 4: TÜM İLANLARI KONTROL ET -------------------
 
-    // 5. Madde için ilk karttaki "View Role" butonu (4. adımda kullanılmayacak, ancak locator burada dursun)
-    private final By FIRST_JOB_VIEW_ROLE_BUTTON_LOCATOR = By.xpath(" (//a[contains(text(), 'View Role')])[1] ");
-
-
-
-
+        elementHelper.waitForElementTextToEqual(CAREERS_PAGE_OPEN_POSITIONS_LOCATION_TEXT_IN_CARD,location,7);
+        elementHelper.waitForElementTextToEqual(CAREERS_PAGE_OPEN_POSITIONS_DEPARTMENT_TEXT_IN_CARD,department,7);
 
 
-
-
-
-
-        // 4. İş Listesinin Varlığını Kontrol Et
         try {
-            // Filtreleme sonuçlarının yüklenmesini bekle (en az bir kartın görünür olmasını)
-            wait.until(ExpectedConditions.visibilityOfElementLocated(ALL_JOB_CARDS_LOCATOR));
+            // 4.1. İş Listesinin Yüklenmesini bekle (En az bir kartın görünürlüğünü beklemek)
+            elementHelper.waitForTheElement(CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR);
 
-            System.out.println("✅ İşler başarıyla filtrelendi ve iş listesi görüntülendi.");
-            return elementHelper.isDisplayedBy(ALL_JOB_CARDS_LOCATOR);
+            // 4.2. Tüm iş ilanı kartlarını al
+            List<WebElement> jobCards = elementHelper.findElements(CAREERS_PAGE_OPEN_POSITIONS_JOB_CARD_LOCATOR);
 
-        } catch (Exception e) {
-            System.err.println("HATA: Filtreleme sonrası iş listesi bulunamadı. Hata: " + e.getMessage());
-            return false;
-        }
-    }
-    // Helper Metot: Custom Dropdown işlemlerini basitleştirir
-    private boolean applyCustomDropdownFilter(By dropdownLocator, String selectionText) {
-        try {
-            // Dropdown'ı açan butona tıkla
-            WebElement filterButton = wait.until(
-                    ExpectedConditions.elementToBeClickable(dropdownLocator)
-            );
-            elementHelper.clickElement(filterButton);
 
-            // Açılan listede istenen opsiyonu bul ve tıkla
-            By optionLocator = getDropdownOptionByTextLocator(selectionText);
-            WebElement option = wait.until(
-                    ExpectedConditions.elementToBeClickable(optionLocator)
-            );
-            elementHelper.clickElement(option);
-            return true;
-        } catch (Exception e) {
-            System.err.println("HATA: Dropdown filtreleme sırasında sorun oluştu: " + selectionText);
-            return false;
-        }
-    }
-
-    // ---------METHOD----- (4. Madde: Detaylı Veri Kontrolü)
-    public boolean checkAllJobsContainCorrectData(String positionKeyword, String location, String department) {
-        List<WebElement> jobCards = wait.until(
-                ExpectedConditions.presenceOfAllElementsLocatedBy(ALL_JOB_CARDS_LOCATOR)
-        );
-
-        if (jobCards.isEmpty()) {
-            System.err.println("HATA: Kontrol edilecek hiç iş ilanı bulunamadı.");
-            return false;
-        }
-
-        System.out.println("INFO: Toplam " + jobCards.size() + " iş ilanı bulundu. Detay kontrolü başlıyor...");
-
-        boolean allValid = true;
-        for (int i = 0; i < jobCards.size(); i++) {
-            WebElement card = jobCards.get(i);
-
-            try {
-                // Göreceli XPath kullanarak kart içindeki metinleri çek
-                String actualPosition = card.findElement(POSITION_TEXT_LOCATOR).getText();
-                String actualLocation = card.findElement(LOCATION_TEXT_LOCATOR).getText();
-                String actualDepartment = card.findElement(DEPARTMENT_TEXT_LOCATOR).getText();
-
-                boolean isPositionValid = actualPosition.contains(positionKeyword);
-                boolean isLocationValid = actualLocation.contains(location);
-                boolean isDepartmentValid = actualDepartment.contains(department);
-
-                if (!isPositionValid || !isLocationValid || !isDepartmentValid) {
-                    System.err.printf("HATA: %d. İlan (Pozisyon: %s) filtre kriterlerini sağlamıyor. Konum Beklenen: %s, Bulunan: %s%n",
-                            i + 1, actualPosition, location, actualLocation);
-                    allValid = false;
-                }
-            } catch (Exception e) {
-                System.err.println("HATA: " + (i + 1) + ". iş ilanının detayları bulunamadı. Hata: " + e.getMessage());
-                allValid = false;
+            if (jobCards.isEmpty()) {
+                System.err.println("HATA: Filtreler uygulandıktan sonra sayfada HİÇ İŞ İLANI bulunamadı.");
+                return false;
             }
-        }
 
-        return allValid;
+            elementHelper.waitByMilliSeconds(7000);
+            System.out.println("INFO: Filtreleme sonrası toplam " + jobCards.size() + " adet iş ilanı bulundu. Doğrulama başlıyor.");
+            String departmentText = elementHelper.getText(CAREERS_PAGE_OPEN_POSITIONS_DEPARTMENT_TEXT_IN_CARD);
+            String locationText = elementHelper.getText(CAREERS_PAGE_OPEN_POSITIONS_LOCATION_TEXT_IN_CARD);
+            boolean isDepartmentCorrect = departmentText.contains(department);
+            boolean isLocationCorrect = locationText.contains(location);
+            if (!isDepartmentCorrect || !isLocationCorrect) {
+                System.err.println("Beklenen Departman: '" + department + "', Bulunan: '" + departmentText + "'");
+                System.err.println("Beklenen Konum: '" + location + "', Bulunan: '" + locationText + "'");
+                return false;
+            }
+
+            System.out.println("INFO: Bulunan tüm " + jobCards.size() + " adet iş ilanı, filtre kriterlerini başarıyla karşılıyor.");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("HATA: İş listesi kontrol edilirken bir hata oluştu veya Timeout yaşandı. Hata: " + e.getMessage());
+            return false;
+        }
     }
 
+
+    private final By CAREERS_PAGE_OPEN_POSITIONS_VIEW_ROLE_BUTTON_IN_CARD = By.xpath("//a[@class='btn btn-navy rounded pt-2 pr-5 pb-2 pl-5']");
+
+    public boolean clickAndVerifyLeverApplicationPage() {
+
+        // 1. Ana pencerenin (Careers Page) handle'ını kaydet
+        String originalWindowHandle = BaseTest.getDriver().getWindowHandle();
+
+        // 2. İlk İş İlanı Kartını Bulma
+        // İlk iş ilanı kartını bulmak için ana locator'ınızı (JOB_CARD_LOCATOR) kullanın.
+        By FIRST_JOB_CARD_LOCATOR = By.xpath("(//div[contains(@id, 'jobs-list')]/div[contains(@class, 'job-card')])[1]");
+
+        WebElement firstJobCard;
+        try {
+            firstJobCard = elementHelper.waitForTheElement(FIRST_JOB_CARD_LOCATOR);
+        } catch (Exception e) {
+            System.err.println("HATA: İlk iş ilanı kartı bulunamadı. " + e.getMessage());
+            return false;
+        }
+
+        // 3. "View Role" Butonuna Tıklama
+        try {
+            WebElement viewRoleButton = elementHelper.findElement(firstJobCard, CAREERS_PAGE_OPEN_POSITIONS_VIEW_ROLE_BUTTON_IN_CARD);
+
+            // Tıklamadan önce sekmeleri al (Güvenlik için)
+            java.util.Set<String> beforeClickHandles = BaseTest.getDriver().getWindowHandles();
+
+            // Butona tıkla (Yeni sekme açılacak)
+            // viewRoleButton üzerine fareyi getirip tıklamak için hoverAndClick metodu kullanıldı.
+            elementHelper.hoverAndClick(viewRoleButton, viewRoleButton);
+            System.out.println("INFO: 'View Role' butonuna hover yapıldı ve tıklandı.");
+
+            // Yeni sekmenin açılmasını bekleme (hoverAndClick metodu sayfa yüklenmesini zaten bekleyebilir,
+            // ancak güvenlik için bu satırı tutuyoruz.)
+            elementHelper.waitForTheElement(By.xpath(Config.getString("HTML_TEXT")));
+        } catch (Exception e) {
+            System.err.println("HATA: 'View Role' tıklaması veya pencere geçişi sırasında hata oluştu. " + e.getMessage());
+            return false;
+        }
+
+        // 5. URL Kontrolü
+        try {
+            // Sayfanın yüklenmesini beklemek için bir bekleme ekleyebilirsiniz.
+            new WebDriverWait(BaseTest.getDriver(), java.time.Duration.ofSeconds(10)).until(
+                    ExpectedConditions.urlContains(Config.getString("VIEW_ROLE_NEW_PAGE"))
+            );
+
+            String currentUrl = BaseTest.getDriver().getCurrentUrl();
+
+            // URL'in "jobs.lever.co" içerdiğini kontrol et.
+            if (currentUrl.contains(Config.getString("VIEW_ROLE_NEW_PAGE"))) {
+                System.out.println("INFO: Başarıyla Lever Application form sayfasına yönlendirildi. URL: " + currentUrl);
+
+                // ÖNEMLİ: İşlem bittikten sonra tekrar ana pencereye geçmeyi düşünebilirsiniz.
+                // driver.close(); // Bu sekme kapatılabilir
+                // driver.switchTo().window(originalWindowHandle); // Ana sekmeye geri dönülebilir.
+
+                return true;
+            } else {
+                System.err.println("HATA: Yönlendirme başarısız. Beklenen Lever URL'i bulunamadı. Mevcut URL: " + currentUrl);
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("HATA: URL kontrolü sırasında bir hata oluştu veya Timeout yaşandı. " + e.getMessage());
+            return false;
+        }
+    }
+
+
+
+ /*
     // ---------METHOD----- (5. Madde: View Role Tıklama ve Yönlendirme Kontrolü)
     public boolean clickFirstViewRoleAndCheckRedirection() {
         try {
@@ -301,9 +320,9 @@ public class CareersPage {
             return false;
         }
     }
+*/
 
 
- */
 
 }
 

@@ -69,36 +69,19 @@ public class InsiderQATest extends BaseTest {
         boolean isJobListPresent = careersPage.filterJobsAndCheckList(LOCATION, DEPARTMENT);
 
         assertTrue(isJobListPresent, "Adım 3 BAŞARISIZ: Filtreleme (" + LOCATION + " ve " + DEPARTMENT + ") sonrası iş listesi bulunamadı.");
-        test.pass("Filtreleme uygulandı ve iş listesi ekranda görünüyor.");
-
-        /*
+        test.pass("Filtreleme (" + LOCATION + " ve " + DEPARTMENT + ") başarıyla uygulandı.");
 
 
-        // 3.2-3.3 Filtreleme ve Liste Kontrolü (Tek bir metot çağrısıyla)
-        // Not: Bu metot, QA sayfasına gittikten sonraki "See all QA jobs" tıklamasını da içermelidir.
 
+        // ADIM 4: FİLTRE SONUÇLARINI KONTROL ET (Yeni metot)
+        boolean isVerificationSuccessful = careersPage.verifyJobFilters(LOCATION, DEPARTMENT);
+        assertTrue(isVerificationSuccessful, "Adım 4 BAŞARISIZ: Filtreleme ," + LOCATION + " ve " + DEPARTMENT + ", sonrası iş ilanları kriterlere uymuyor veya liste bulunamadı.");
+        test.pass("Tüm iş ilanlarının"  + LOCATION + " ve " + DEPARTMENT + "bilgileri filtrelenen kriterlere uygundur.");
 
-        // ---------------------------------------------------------------------------------
-        // --- Adım 4: Filtrelenmiş İş İlanlarının Detaylarını Kontrol Et ---
-        // ---------------------------------------------------------------------------------
-        test.info("4. Adım: Tüm ilanların Pozisyon, Departman ve Konum bilgilerini kontrol et.");
+        // ------------------- ADIM 5: VIEW ROLE TIKLAMA VE YÖNLENDİRME KONTROLÜ -------------------
+        boolean isRedirectSuccessful = careersPage.clickAndVerifyLeverApplicationPage();
+        assertTrue(isRedirectSuccessful, "Adım 5 BAŞARISIZ: 'View Role' tıklaması veya Lever başvuru sayfasına yönlendirme başarısız.");
+        test.pass("View Role butonuna tıklandı ve Lever Application form sayfasına yönlendirme başarılı.");
 
-        // Pozisyon kelimesi olarak "Quality Assurance" kontrol ediliyor.
-        boolean allJobsValid = homePage.checkAllJobsContainCorrectData("Quality Assurance", LOCATION, DEPARTMENT);
-
-        assertTrue(allJobsValid, "Adım 4 BAŞARISIZ: Listelenen tüm iş ilanları, beklenen Pozisyon, Departman veya Konum kriterlerini içermiyor.");
-        test.pass("Listelenen tüm iş ilanlarının Pozisyon, Departman ve Konum bilgileri doğru.");
-
-        // ---------------------------------------------------------------------------------
-        // --- Adım 5: "View Role" Butonuna Tıkla ve Lever Sayfasına Yönlendirmeyi Kontrol Et ---
-        // ---------------------------------------------------------------------------------
-        test.info("5. Adım: İlk ilanın 'View Role' butonuna tıkla ve harici başvuru sayfasına yönlendirmeyi kontrol et.");
-
-        boolean isRedirected = homePage.clickFirstViewRoleAndCheckRedirection();
-
-        assertTrue(isRedirected, "Adım 5 BAŞARISIZ: 'View Role' butonuna tıklandıktan sonra Lever/Greenhouse gibi harici bir başvuru sayfasına yönlendirme yapılamadı.");
-        test.pass("'View Role' butonuna tıklandı ve başarılı bir şekilde harici başvuru sayfasına yönlendirildi.");
-
-         */
     }
 }
