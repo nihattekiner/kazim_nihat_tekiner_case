@@ -5,6 +5,7 @@ Bu repository <span style="color:green;"> **Java** </span> dilinde, <span style=
 **Manuel Çalıştırma:** Testi doğrudan IDE'niz (IntelliJ/JDK 21+) üzerinden çalıştırmak için:
 1.  **Sınıf Konumu:** `src/test/java/tests/InsiderQATest.java`
 2.  **Başlangıç:** `InsiderQATest` sınıfına sağ tıklayıp **"Run"** seçeneğini kullanın.
+3. Testin başarılı olduğuna dair ekran kaydo linki : https://drive.google.com/file/d/1dyqZSD8f3g15o-lj0PJeHperX-D8Ifxh/view?usp=sharing
 ---
 
 ## 🎯 Otomasyon Senaryosu (QA Case)

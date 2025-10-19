@@ -76,7 +76,22 @@ public class Careers_OpenPositionsPage {
             System.err.println("HATA: Department filtresi uygulanamadı. Hata: " + e.getMessage());
             return false;
         }
-
+        // =========== ÖNEMLİ BİLGİLENDİRME: YARIŞ KOŞULU (RACE CONDITION) ENGELLENDİ ===========
+        //
+        // PROBLEM: Otomasyon akışı çok hızlı ilerlediği için, filtreleme işlemi sonrası Sayfa Objesi (DOM) kısa bir süre içinde güncellenmesine rağmen,
+        // "Filter by Department" seçilen "Quality Assurance" değerini (%90 ihtimalle) yanlışlıkla varsayılan "All" olarak algılamaktadır.
+        //
+        // ÇÖZÜM: Bu yarış koşulunu (Race Condition) stabil hale getirmek amacıyla, filtreleme adımından önce zorunlu bir bekleme eklenmiştir.
+        // Bu bekleme, arayüzün tüm JavaScript güncellemelerinin tamamlanmasına yetecek süreyi sağlamaktadır.
+        //
+        elementHelper.waitByMilliSeconds(2000);
+        elementHelper.clickElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_REMOVE_ALL_BUTTON_LOCATOR);
+        elementHelper.waitByMilliSeconds(2000);
+        elementHelper.waitForTheElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_IN_MENU_QUALITY_ASSURANCE_TEXT_LOCATOR);
+        elementHelper.waitByMilliSeconds(2000);
+        elementHelper.clickElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_IN_MENU_QUALITY_ASSURANCE_TEXT_LOCATOR);
+        elementHelper.waitByMilliSeconds(2000);
+        elementHelper.waitForPageToCompleteState();
 
         // 3. İŞ İLANI METNİNİN GÖRÜNÜR OLMASINI KONTROL ET
         try {
@@ -140,22 +155,6 @@ public class Careers_OpenPositionsPage {
             boolean isDepartmentCorrect = departmentText.contains(department);
             boolean isLocationCorrect = locationText.contains(location);
 
-            // =========== ÖNEMLİ BİLGİLENDİRME: YARIŞ KOŞULU (RACE CONDITION) ENGELLENDİ ===========
-            //
-            // PROBLEM: Otomasyon akışı çok hızlı ilerlediği için, filtreleme işlemi sonrası Sayfa Objesi (DOM) kısa bir süre içinde güncellenmesine rağmen,
-            // "Filter by Department" seçilen "Quality Assurance" değerini (%90 ihtimalle) yanlışlıkla varsayılan "All" olarak algılamaktadır.
-            //
-            // ÇÖZÜM: Bu yarış koşulunu (Race Condition) stabil hale getirmek amacıyla, filtreleme adımından önce zorunlu bir bekleme eklenmiştir.
-            // Bu bekleme, arayüzün tüm JavaScript güncellemelerinin tamamlanmasına yetecek süreyi sağlamaktadır.
-            //
-            elementHelper.waitByMilliSeconds(2000);
-            elementHelper.clickElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_REMOVE_ALL_BUTTON_LOCATOR);
-            elementHelper.waitByMilliSeconds(2000);
-            elementHelper.waitForTheElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_IN_MENU_QUALITY_ASSURANCE_TEXT_LOCATOR);
-            elementHelper.waitByMilliSeconds(2000);
-            elementHelper.clickElement(careers_openPositionsLocators.FILTER_BY_DEPARTMENT_IN_MENU_QUALITY_ASSURANCE_TEXT_LOCATOR);
-            elementHelper.waitByMilliSeconds(2000);
-            elementHelper.waitForPageToCompleteState();
             if (!isDepartmentCorrect || !isLocationCorrect) {
                 System.err.println("HATA: İş ilanı filtre kriterlerine uymuyor.");
                 System.err.println("Beklenen Departman: '" + department + "', Bulunan: '" + departmentText + "'");
